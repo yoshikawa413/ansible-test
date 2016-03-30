@@ -1,0 +1,4 @@
+---
+
+- file: path={{ nginx_root }} state=directory
+- unarchive: src={{ nginx_download_url }} dest={{ nginx_root }} copy=no

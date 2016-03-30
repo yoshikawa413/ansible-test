@@ -1,0 +1,6 @@
+---
+
+# nginx
+nginx_download_url: http://nginx.org/download/nginx-1.9.9.tar.gz
+nginx_version: 1.9.9
+nginx_root: /opt/nginx/

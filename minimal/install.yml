@@ -1,0 +1,8 @@
+---
+- name: Install nginx, mysql-user
+  hosts: web
+  remote_user: syoshikawa
+  sudo: yes
+
+  roles:
+    - nginx
