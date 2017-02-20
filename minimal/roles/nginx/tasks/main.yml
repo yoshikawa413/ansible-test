@@ -1,4 +1,61 @@
 ---
 
+- name: dependencies
+  yum: name={{ item }} state=latest
+  with_items:
+    - gcc
+    - gcc-c++
+    - gd
+    - gd-devel
+    - unzip
+    - libxml2
+    - libxml2-devel
+    - libselinux-python
 - file: path={{ nginx_root }} state=directory
-- unarchive: src={{ nginx_download_url }} dest={{ nginx_root }} copy=no
+- unarchive: src={{ nginx_download_url }} dest={{ download_src }} copy=no
+- unarchive: src={{ pcre_download_url }} dest={{ download_src }} copy=no
+- unarchive: src={{ zlib_download_url }} dest={{ download_src }} copy=no
+- unarchive: src={{ php_download_url }} dest={{ download_src }} copy=no
+- user: name={{ nginx_user }} system=yes createhome=no shell=/sbin/nologin
+- file: path={{ webroot }} state=directory mode=0755 owner={{ user }}
+- name: install nginx
+  shell: >
+    cd {{ download_src }}/nginx-{{ nginx_version }} &&
+    ./configure --prefix={{ nginx_root }}/nginx-{{ nginx_version }}
+    --user={{ nginx_user }}
+    --group={{ nginx_user }}
+    --with-pcre="{{ download_src }}/pcre-{{ pcre_version }}"
+    --with-zlib="{{ download_src }}/zlib-{{ zlib_version }}"
+    --with-http_image_filter_module &&
+    make &&
+    make install
+- template:
+    src: templates/nginx.conf
+    dest: "{{ nginx_root }}/nginx-{{ nginx_version }}/conf/nginx.conf"
+- file:
+    src: "{{ nginx_root }}/nginx-{{ nginx_version }}"
+    dest: "{{ nginx_root }}/current"
+    state: link
+- name: install php
+  shell: >
+    cd {{ download_src }}/php-{{ php_version }} &&
+    ./configure --prefix={{ php_root }}/php-{{ php_version }}
+    --enable-fpm
+    --with-mysqli=mysqlnd
+    --with-pdo-mysql=mysqlnd
+    --with-mysql=mysqlnd
+    --with-openssl
+    --enable-mbstring &&
+    make &&
+    make install
+- template:
+    src: templates/php-fpm.conf
+    dest: "{{ php_root }}/php-{{ php_version }}/etc/php-fpm.conf"
+- name: php PATH
+  shell: >
+    echo "export PATH=\$PATH:{{ php_root }}/current/bin" > /etc/profile.d/php.sh
+- file: path=/etc/profile.d/php.sh mode=0644 owner=root
+- file:
+    src: "{{ php_root }}/php-{{ php_version }}"
+    dest: "{{ php_root }}/current"
+    state: link
