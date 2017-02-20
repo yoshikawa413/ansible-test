@@ -1,6 +1,32 @@
 ---
+# global
+download_src: /usr/local/src
+user: install
 
-# nginx
-nginx_download_url: http://nginx.org/download/nginx-1.9.9.tar.gz
-nginx_version: 1.9.9
-nginx_root: /opt/nginx/
+#nginx_download_url: https://nginx.org/download/nginx-1.11.10.tar.gz
+nginx_download_url: file:///home/install/work/nginx-1.11.10.tar.gz
+#pcre_download_url: https://sourceforge.net/projects/pcre/files/pcre/8.40/pcre-8.40.tar.gz/download
+pcre_download_url: file:///home/install/work/pcre-8.40.tar.gz
+#zlib_download_url: http://prdownloads.sourceforge.net/libpng/zlib-1.2.11.tar.gz?download
+zlib_download_url: file:///home/install/work/zlib-1.2.11.tar.gz
+#php_download_url: http://jp2.php.net/get/php-5.6.30.tar.gz/from/this/mirror
+php_download_url: file:///home/install/work/php-5.6.30.tar.gz
+#mariadb_download_url: https://downloads.mariadb.org/interstitial/mariadb-10.1.21/source/mariadb-10.1.21.tar.gz/from/http%3A//ftp.yz.yamagata-u.ac.jp/pub/dbms/mariadb/?serve
+mariadb_download_url: file:///home/install/work/mariadb-10.1.21.tar.gz
+
+nginx_version: "1.11.10"
+nginx_root: /opt/nginx
+nginx_user: nginx
+webroot: /home/install/www
+
+php_version: "5.6.30"
+php_root: /opt/php
+
+pcre_version: "8.40"
+zlib_version: "1.2.11"
+
+mariadb_version: "10.1.21"
+mariadb_root: /opt/mysql
+mariadb_group: mysql
+mariadb_user: mysql
+mariadb_datadir: /home/install/var/mysql/data
