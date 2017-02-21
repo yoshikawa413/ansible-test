@@ -18,6 +18,20 @@
 - unarchive: src={{ php_download_url }} dest={{ download_src }} copy=no
 - user: name={{ nginx_user }} system=yes createhome=no shell=/sbin/nologin
 - file: path={{ webroot }} state=directory mode=0755 owner={{ user }}
+- name: check nginx service
+  stat: path=/etc/init.d/nginx
+  register: nginx_service_status
+- name: stop nginx service
+  service: name=nginx state=stopped
+  when: nginx_service_status.stat.exists
+  register: service_stopped
+- name: check php service
+  stat: path=/etc/init.d/php-fpm
+  register: php_service_status
+- name: stop php service
+  service: name=php-fpm state=stopped
+  when: php_service_status.stat.exists
+  register: service_stopped
 - name: install nginx
   shell: >
     cd {{ download_src }}/nginx-{{ nginx_version }} &&
@@ -32,10 +46,35 @@
 - template:
     src: templates/nginx.conf
     dest: "{{ nginx_root }}/nginx-{{ nginx_version }}/conf/nginx.conf"
+- name: change nginx documentroot
+  lineinfile:
+    #ansible2.3以降はdestではなくpath
+    dest: "{{ nginx_root }}/nginx-{{ nginx_version }}/conf/nginx.conf"
+    state: present
+    regexp: "root changeit;"
+    line: "        root {{ webroot }}/public;"
 - file:
     src: "{{ nginx_root }}/nginx-{{ nginx_version }}"
     dest: "{{ nginx_root }}/current"
     state: link
+- template:
+    src: templates/nginx
+    dest: "/etc/init.d/nginx"
+    mode: "u=rwx,g=rx,o=rx"
+- name: change nginx script path
+  lineinfile:
+    #ansible2.3以降はdestではなくpath
+    dest: "/etc/init.d/nginx"
+    state: present
+    regexp: "^nginx="
+    line: "nginx={{ nginx_root }}/current/sbin/nginx"
+- name: change nginx conf file
+  lineinfile:
+    #ansible2.3以降はdestではなくpath
+    dest: "/etc/init.d/nginx"
+    state: present
+    regexp: "^NGINX_CONF_FILE="
+    line: "NGINX_CONF_FILE=\"{{ nginx_root }}/current/conf/nginx.conf\""
 - name: install php
   shell: >
     cd {{ download_src }}/php-{{ php_version }} &&
@@ -59,3 +98,12 @@
     src: "{{ php_root }}/php-{{ php_version }}"
     dest: "{{ php_root }}/current"
     state: link
+- copy:
+    remote_src: true
+    src: "{{ download_src }}/php-{{ php_version }}/sapi/fpm/init.d.php-fpm"
+    dest: /etc/init.d/php-fpm
+    owner: root
+    group: root
+    mode: "u=rwx,g=rx,o=rx"
+- service: name=php-fpm state=started
+- service: name=nginx state=started
