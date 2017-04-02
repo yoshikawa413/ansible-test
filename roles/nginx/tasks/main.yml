@@ -16,7 +16,7 @@
 - unarchive: src={{ pcre_download_url }} dest={{ download_src }} copy=no
 - unarchive: src={{ zlib_download_url }} dest={{ download_src }} copy=no
 - unarchive: src={{ php_download_url }} dest={{ download_src }} copy=no
-- user: name={{ nginx_user }} system=yes createhome=no shell=/sbin/nologin
+- user: name={{ nginx_user }} system=yes createhome=yes shell=/bin/bash
 - file: path={{ webroot }} state=directory mode=0755 owner={{ user }}
 - name: check nginx service
   stat: path=/etc/init.d/nginx
@@ -43,16 +43,20 @@
     --with-http_image_filter_module &&
     make &&
     make install
+- file: path="{{ nginx_root }}/nginx-{{ nginx_version }}/conf/servers" state=directory
 - template:
     src: templates/nginx.conf
     dest: "{{ nginx_root }}/nginx-{{ nginx_version }}/conf/nginx.conf"
-- name: change nginx documentroot
+- template:
+    src: templates/webhooks.conf
+    dest: "{{ nginx_root }}/nginx-{{ nginx_version }}/conf/servers/webhooks.conf"
+- name: change webhook documentroot
   lineinfile:
     #ansible2.3以降はdestではなくpath
-    dest: "{{ nginx_root }}/nginx-{{ nginx_version }}/conf/nginx.conf"
+    dest: "{{ nginx_root }}/nginx-{{ nginx_version }}/conf/servers/webhooks.conf"
     state: present
     regexp: "root changeit;"
-    line: "        root {{ webroot }}/public;"
+    line: "    root {{ webroot }}/webhooks;"
 - file:
     src: "{{ nginx_root }}/nginx-{{ nginx_version }}"
     dest: "{{ nginx_root }}/current"

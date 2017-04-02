@@ -1,0 +1,8 @@
+---
+- name: ansible-test
+  hosts: web
+  remote_user: yoshikawa413
+  sudo: yes
+
+  roles:
+    - nginx

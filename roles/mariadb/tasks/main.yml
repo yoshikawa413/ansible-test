@@ -16,6 +16,13 @@
     - openssl
     - jemalloc
 - file: path={{ mariadb_root }} state=directory
+- name: check mysql datadir
+  stat: path={{ mariadb_datadir }}
+  register: mysql_datadir_status
+- name: stop mysql datadir
+  fail: msg="mysql datadir already exist. => {{ mariadb_datadir }}"
+  when: mysql_datadir_status.stat.exists
+  register: mysql_datadir_exists
 - unarchive: src={{ mariadb_download_url }} dest={{ download_src }} copy=no
 - group: name={{ mariadb_group }} state=present
 - user: name={{ mariadb_user }} group={{ mariadb_group }} system=yes createhome=no shell=/sbin/nologin
@@ -74,7 +81,7 @@
     regexp: "^datadir=$"
     line: "datadir={{ mariadb_datadir }}"
 - template:
-    src: templates/my.ini
+    src: templates/my.cnf
     dest: "{{ mariadb_root }}/current/my.cnf"
 - name: set my.cnf datadir
   lineinfile:
